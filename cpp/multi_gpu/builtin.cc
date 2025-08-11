@@ -8,6 +8,8 @@
 #include <tvm/ffi/container/shape.h>
 #include <tvm/ffi/function.h>
 #include <tvm/ffi/optional.h>
+#include <tvm/ffi/reflection/registry.h>
+#include <tvm/node/cast.h>
 #include <tvm/runtime/disco/builtin.h>
 #include <tvm/runtime/disco/disco_worker.h>
 #include <tvm/runtime/ndarray.h>
@@ -18,6 +20,7 @@ namespace llm {
 namespace multi_gpu {
 
 using namespace tvm::runtime;
+using tvm::Downcast;
 using tvm::ffi::Array;
 using tvm::ffi::Optional;
 using tvm::ffi::Shape;
@@ -83,10 +86,12 @@ ObjectRef SendFromLastGroupToWorker0(NDArray send, Optional<NDArray> recv, Shape
   return recv;
 }
 
-TVM_FFI_REGISTER_GLOBAL("mlc.multi_gpu.DispatchFunctionByGroup")
-    .set_body_typed(DispatchFunctionByGroup);
-TVM_FFI_REGISTER_GLOBAL("mlc.multi_gpu.SendFromLastGroupToWorker0")
-    .set_body_typed(SendFromLastGroupToWorker0);
+TVM_FFI_STATIC_INIT_BLOCK({
+  namespace refl = tvm::ffi::reflection;
+  refl::GlobalDef()
+      .def("mlc.multi_gpu.DispatchFunctionByGroup", DispatchFunctionByGroup)
+      .def("mlc.multi_gpu.SendFromLastGroupToWorker0", SendFromLastGroupToWorker0);
+});
 
 }  // namespace multi_gpu
 }  // namespace llm
